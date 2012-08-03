@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UITextBlockControl", "UITextBlockControl\UITextBlockControl.csproj", "{6A10EC34-9BA3-4A89-9F95-FB003DA4925B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UITextBlock.Demo", "UITextBlock.Demo\UITextBlock.Demo.csproj", "{6EC3CB52-99C9-4FB6-8FA7-203B8A2169A9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6A10EC34-9BA3-4A89-9F95-FB003DA4925B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A10EC34-9BA3-4A89-9F95-FB003DA4925B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A10EC34-9BA3-4A89-9F95-FB003DA4925B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A10EC34-9BA3-4A89-9F95-FB003DA4925B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EC3CB52-99C9-4FB6-8FA7-203B8A2169A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EC3CB52-99C9-4FB6-8FA7-203B8A2169A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EC3CB52-99C9-4FB6-8FA7-203B8A2169A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EC3CB52-99C9-4FB6-8FA7-203B8A2169A9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
