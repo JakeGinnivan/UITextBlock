@@ -1,18 +1,16 @@
 ﻿using System.Reflection;
-using System.Resources;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("UITextBlockControl")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("UITextBlock")]
+[assembly: AssemblyDescription("A WPF TextBlock control that shows a tooltip when trimmed and can make the font size smaller automatically to fit")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("UITextBlockControl")]
-[assembly: AssemblyCopyright("Copyright ©  2012")]
+[assembly: AssemblyProduct("UITextBlock")]
+[assembly: AssemblyCopyright("Copyright © Jake Ginnivan 2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
