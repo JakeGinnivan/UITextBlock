@@ -10,7 +10,8 @@ namespace UITextBlockControl
 {
     public class UITextBlock : TextBlock
     {
-        private double? _originalFontSize;
+        private double? originalFontSize;
+        private bool changingFontSize;
 
         private static readonly DependencyPropertyKey IsTextTrimmedKey = DependencyProperty.RegisterReadOnly(
             "IsTextTrimmed",
@@ -29,7 +30,7 @@ namespace UITextBlockControl
         private static void ShrinkFontSizeToFitChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var uiTextBlock = (UITextBlock)d;
-            uiTextBlock._originalFontSize = uiTextBlock.FontSize;
+            uiTextBlock.originalFontSize = uiTextBlock.FontSize;
         }
 
         public static readonly DependencyProperty MinFontSizeProperty =
@@ -48,6 +49,15 @@ namespace UITextBlockControl
             SizeChanged += UITextBlockSizeChanged;
             Loaded += AddValueChangedToTextProperty;
             Unloaded += RemoveValueChangedToTextProperty;
+
+            var descriptor = DependencyPropertyDescriptor.FromProperty(FontSizeProperty, typeof(TextBlock));
+            descriptor.AddValueChanged(this, FontSizeChanged);
+        }
+
+        private void FontSizeChanged(object sender, EventArgs eventArgs)
+        {
+            if (!changingFontSize)
+                originalFontSize = FontSize;
         }
 
         private void RemoveValueChangedToTextProperty(object sender, RoutedEventArgs e)
@@ -108,8 +118,21 @@ namespace UITextBlockControl
             var newFontSize = textBlock.FontSize;
             var formattedText = BuildFormattedTextFrom(textBlock, newFontSize);
 
+            newFontSize = ShrinkForWidth(textBlock, formattedText, newFontSize);
+            newFontSize = ShrinkForHeight(textBlock, formattedText, newFontSize);
+
+            if (Math.Abs(textBlock.FontSize - newFontSize) > 0.1 && newFontSize >= textBlock.MinFontSize)
+            {
+                textBlock.changingFontSize = true;
+                textBlock.FontSize = newFontSize;
+                textBlock.changingFontSize = false;
+            }
+        }
+
+        private static double ShrinkForWidth(UITextBlock textBlock, FormattedText formattedText, double newFontSize)
+        {
             var desiredWidth = textBlock.DesiredSize.Width;
-            var maxWidth = BuildFormattedTextFrom(textBlock, textBlock._originalFontSize).Width;
+            var maxWidth = BuildFormattedTextFrom(textBlock, textBlock.originalFontSize).Width;
 
             while (formattedText.Width > desiredWidth)
             {
@@ -118,14 +141,32 @@ namespace UITextBlockControl
             }
 
             var width = BuildFormattedTextFrom(textBlock, newFontSize + 1).Width;
-            while (width <= maxWidth && width < textBlock.ActualWidth && newFontSize < textBlock._originalFontSize)
+            while (width <= maxWidth && width < textBlock.ActualWidth && newFontSize < textBlock.originalFontSize)
             {
                 newFontSize += 1;
                 width = BuildFormattedTextFrom(textBlock, newFontSize + 1).Width;
             }
+            return newFontSize;
+        }
 
-            if (Math.Abs(textBlock.FontSize - newFontSize) > 0.1 && newFontSize >= textBlock.MinFontSize)
-                textBlock.FontSize = newFontSize;
+        private static double ShrinkForHeight(UITextBlock textBlock, FormattedText formattedText, double newFontSize)
+        {
+            var desiredHeight = textBlock.DesiredSize.Height;
+            var maxHeight = BuildFormattedTextFrom(textBlock, textBlock.originalFontSize).Height;
+
+            while (formattedText.Height > desiredHeight)
+            {
+                newFontSize -= 1;
+                formattedText = BuildFormattedTextFrom(textBlock, newFontSize);
+            }
+
+            var height = BuildFormattedTextFrom(textBlock, newFontSize + 1).Height;
+            while (height <= maxHeight && height < textBlock.ActualHeight && newFontSize < textBlock.originalFontSize)
+            {
+                newFontSize += 1;
+                height = BuildFormattedTextFrom(textBlock, newFontSize + 1).Height;
+            }
+            return newFontSize;
         }
 
         static void UITextBlockSizeChanged(object sender, SizeChangedEventArgs e)
@@ -136,7 +177,8 @@ namespace UITextBlockControl
 
             PerformShrinkIfNeeded(textBlock);
 
-            SetIsTextTrimmed(textBlock, textBlock.TextTrimming != TextTrimming.None && CalculateIsTextTrimmed(textBlock));
+            var textIsTrimmed = textBlock.TextTrimming != TextTrimming.None && CalculateIsTextTrimmed(textBlock);
+            SetIsTextTrimmed(textBlock, textIsTrimmed);
         }
 
         protected override AutomationPeer OnCreateAutomationPeer()
@@ -147,13 +189,8 @@ namespace UITextBlockControl
         private static bool CalculateIsTextTrimmed(TextBlock textBlock)
         {
             var formattedText = BuildFormattedTextFrom(textBlock);
-            formattedText.MaxTextWidth = textBlock.ActualWidth;
 
-            // When the maximum text width of the FormattedText instance is set to the actual
-            // width of the textBlock, if the textBlock is being trimmed to fit then the formatted
-            // text will report a larger height than the textBlock. Should work whether the
-            // textBlock is single or multi-line.
-            return (formattedText.Height > textBlock.ActualHeight);
+            return (formattedText.Width > textBlock.ActualWidth);
         }
 
         private static FormattedText BuildFormattedTextFrom(TextBlock textBlock, double? fontSize = null)
