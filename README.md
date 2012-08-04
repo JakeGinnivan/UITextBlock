@@ -16,3 +16,8 @@ When you use TextTrimming="CharacterEllipsis" or TextTrimming="WordEllipsis", if
 
 If the text cannot fit into the space, it will drop the font size until it hits the MinFontSize (or keep dropping to 1pt).
 Once it hits the min it will start using TextTrimming.
+
+## Install
+Install-Package UITextBlock
+
+Thinking about distributing a source version too, thoughts?
