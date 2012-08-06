@@ -22,10 +22,10 @@ namespace UITextBlockControl
         private static readonly DependencyProperty IsTextTrimmedProperty = IsTextTrimmedKey.DependencyProperty;
 
         public static DependencyProperty ShrinkFontSizeToFitProperty = DependencyProperty.Register(
-            "ShrinkFontSizeToFit", 
-            typeof (bool), 
-            typeof (UITextBlock), 
-            new PropertyMetadata(ShrinkFontSizeToFitChanged));
+            "ShrinkFontSizeToFit",
+            typeof(bool),
+            typeof(UITextBlock),
+            new PropertyMetadata(false, ShrinkFontSizeToFitChanged));
 
         private static void ShrinkFontSizeToFitChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -34,17 +34,17 @@ namespace UITextBlockControl
         }
 
         public static readonly DependencyProperty MinFontSizeProperty =
-            DependencyProperty.Register("MinFontSize", typeof (double), typeof (UITextBlock), new PropertyMetadata(1d));
+            DependencyProperty.Register("MinFontSize", typeof(double), typeof(UITextBlock), new PropertyMetadata(1d));
 
         public double MinFontSize
         {
-            get { return (double) GetValue(MinFontSizeProperty); }
+            get { return (double)GetValue(MinFontSizeProperty); }
             set { SetValue(MinFontSizeProperty, value); }
         }
 
         public UITextBlock()
         {
-            DefaultStyleKey = typeof (UITextBlock);
+            DefaultStyleKey = typeof(UITextBlock);
 
             SizeChanged += UITextBlockSizeChanged;
             Loaded += AddValueChangedToTextProperty;
@@ -83,7 +83,7 @@ namespace UITextBlockControl
 
         public bool ShrinkFontSizeToFit
         {
-            get { return (bool) GetValue(ShrinkFontSizeToFitProperty); }
+            get { return (bool)GetValue(ShrinkFontSizeToFitProperty); }
             set { SetValue(ShrinkFontSizeToFitProperty, value); }
         }
 
@@ -114,30 +114,29 @@ namespace UITextBlockControl
         {
             if (!textBlock.ShrinkFontSizeToFit)
                 return;
-                
-            if (newFontSize == default(double))
-                return;
 
             var newFontSize = textBlock.FontSize;
+            if (newFontSize == default(double))
+                return;
             var formattedText = BuildFormattedTextFrom(textBlock, newFontSize);
 
-            newFontSize = ShrinkForWidth(textBlock, formattedText, newFontSize);
-            newFontSize = ShrinkForHeight(textBlock, formattedText, newFontSize);
+            ShrinkForWidth(textBlock, formattedText, newFontSize);
 
-            if (Math.Abs(textBlock.FontSize - newFontSize) > 0.1 && newFontSize >= textBlock.MinFontSize)
-            {
-                textBlock.changingFontSize = true;
-                textBlock.FontSize = newFontSize;
-                textBlock.changingFontSize = false;
-            }
+            // Only calculate height if it is explicit
+            var height = textBlock.ReadLocalValue(HeightProperty);
+            var maxHeight = textBlock.ReadLocalValue(MaxHeightProperty);
+            var heightSet = height != DependencyProperty.UnsetValue;
+            var maxHeightSet = maxHeight != DependencyProperty.UnsetValue;
+            if (heightSet || maxHeightSet)
+                ShrinkForHeight((maxHeightSet ? (double)maxHeight : (double)height), textBlock, formattedText, newFontSize);
         }
 
-        private static double ShrinkForWidth(UITextBlock textBlock, FormattedText formattedText, double newFontSize)
+        private static void ShrinkForWidth(UITextBlock textBlock, FormattedText formattedText, double newFontSize)
         {
             var desiredWidth = textBlock.DesiredSize.Width;
             var maxWidth = BuildFormattedTextFrom(textBlock, textBlock.originalFontSize).Width;
 
-            while (formattedText.Width > desiredWidth)
+            while (formattedText.Width > desiredWidth && newFontSize > textBlock.MinFontSize)
             {
                 newFontSize -= 1;
                 formattedText = BuildFormattedTextFrom(textBlock, newFontSize);
@@ -149,12 +148,12 @@ namespace UITextBlockControl
                 newFontSize += 1;
                 width = BuildFormattedTextFrom(textBlock, newFontSize + 1).Width;
             }
-            return newFontSize;
+
+            UpdateFontSizeIfNeeded(textBlock, newFontSize);
         }
 
-        private static double ShrinkForHeight(UITextBlock textBlock, FormattedText formattedText, double newFontSize)
+        private static void ShrinkForHeight(double desiredHeight, UITextBlock textBlock, FormattedText formattedText, double newFontSize)
         {
-            var desiredHeight = textBlock.DesiredSize.Height;
             var maxHeight = BuildFormattedTextFrom(textBlock, textBlock.originalFontSize).Height;
 
             while (formattedText.Height > desiredHeight)
@@ -169,7 +168,18 @@ namespace UITextBlockControl
                 newFontSize += 1;
                 height = BuildFormattedTextFrom(textBlock, newFontSize + 1).Height;
             }
-            return newFontSize;
+
+            UpdateFontSizeIfNeeded(textBlock, newFontSize);
+        }
+
+        private static void UpdateFontSizeIfNeeded(UITextBlock textBlock, double newFontSize)
+        {
+            if (Math.Abs(textBlock.FontSize - newFontSize) > 0.1 && newFontSize >= textBlock.MinFontSize)
+            {
+                textBlock.changingFontSize = true;
+                textBlock.FontSize = newFontSize;
+                textBlock.changingFontSize = false;
+            }
         }
 
         static void UITextBlockSizeChanged(object sender, SizeChangedEventArgs e)
