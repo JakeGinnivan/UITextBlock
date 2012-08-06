@@ -114,6 +114,9 @@ namespace UITextBlockControl
         {
             if (!textBlock.ShrinkFontSizeToFit)
                 return;
+                
+            if (newFontSize == default(double))
+                return;
 
             var newFontSize = textBlock.FontSize;
             var formattedText = BuildFormattedTextFrom(textBlock, newFontSize);
